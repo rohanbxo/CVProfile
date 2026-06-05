@@ -30,6 +30,17 @@
         </a>
     </nav>
 
+    <!-- Background Music -->
+    <audio id="bg-music" loop>
+        <source src="test.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Music Toggle Button -->
+    <button id="music-toggle" aria-label="Toggle music" title="Toggle music">
+        <svg id="music-icon-on" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M9 3v10.55A4 4 0 1 0 11 17V7h4V3H9z"/></svg>
+        <svg id="music-icon-off" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3v10.55A4 4 0 1 0 11 17V7h4V3H9z"/><line x1="2" y1="2" x2="22" y2="22" stroke="currentColor" stroke-width="2"/></svg>
+    </button>
+
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden">Email copied to clipboard!</div>
 
@@ -53,37 +64,50 @@
                                 <p>Computer Science Student</p>
                                 <h1>ROHAN BURUGAPALLI</h1>
                             </div>
-                            
-                            <p>Computer Science and Engineering student with strong foundations in linear algebra, probability, and machine learning. Experienced in building and optimizing AI models using Python, and applying quantitative analysis to real-world problems.</p>
-                            
+
+                            <p>Computer Science student specialising in NLP, machine learning, and AI application development. Experienced in fine-tuning transformer models, building RAG pipelines, and deploying LLM-based systems using Python, PyTorch, and modern AI frameworks. Skilled in developing end-to-end solutions from model training to production deployment across AI and data science.</p>
+
                             <section>
                                 <h2 class="section-heading">TECHNICAL SKILLS</h2>
                                 <p class="section-text"><strong>Programming:</strong> Python, C++, Java<br>
-                                <strong>Libraries:</strong> PyTorch, Pandas, TensorFlow, FastAPI, LlamaIndex, LangChain<br>
-                                <strong>Technologies:</strong> Git, Microsoft Excel, PowerBI<br>
-                                <strong>Databases:</strong> SQL, Salesforce<br>
+                                <strong>ML/AI:</strong> PyTorch, TensorFlow, HuggingFace Transformers, NLP, RAG, LLMs, Prompt Engineering<br>
+                                <strong>Data:</strong> Pandas, NumPy, FastEmbed, Vector Databases, SQL<br>
+                                <strong>Frameworks/Libraries:</strong> FastAPI, LlamaIndex, LangChain, Groq, REST APIs, Git<br>
                                 <strong>Relevant Coursework:</strong> DSA, OOPs, DBMS, Data Science, Cryptography, Blockchain, LLMs</p>
                             </section>
 
                             <section>
                                 <h2 class="section-heading">PROJECTS</h2>
                                 <p class="section-text">
-                                    <strong>ZK-Based Private Token Transfer System</strong><br>
-                                    Engineered privacy layer for Ethereum using Circom zk-SNARK circuits and Groth16.<br><br>
-                                    <strong>Phishing Email and URL Detector</strong><br>
-                                    AI-powered phishing detection system utilizing DistilBERT achieving 92% accuracy.<br><br>
+                                    <strong>MCP Tool-Response Security Firewall</strong><br>
+                                    ML-based security layer for Model Context Protocol pipelines detecting prompt injection and tool-poisoning attacks using NLP classifiers and HuggingFace Transformers.<br><br>
                                     <strong>PDF and Web Content Study Assistant</strong><br>
-                                    Full-stack RAG application with FastAPI and LlamaIndex for intelligent Q&A.<br><br>
+                                    Full-stack RAG application with FastAPI and LlamaIndex for intelligent Q&amp;A with &lt;2s response times using Groq LLM inference and FastEmbed vector embeddings.<br><br>
+                                    <strong>AI News Aggregator</strong><br>
+                                    Generative AI pipeline using Groq (Llama 3.3 70B) to scrape and summarise AI news, with automated daily email delivery, Neon Postgres duplicate tracking, and multi-provider LLM fallback.<br><br>
+                                    <strong>ZK-Based Private Token Transfer System</strong><br>
+                                    Privacy layer for Ethereum using Circom zk-SNARK circuits and Groth16, with shielded pool architecture and Merkle tree commitment scheme.<br><br>
+                                    <strong>Phishing Email and URL Detector</strong><br>
+                                    AI-powered phishing detection system fine-tuning DistilBERT achieving 92% accuracy and 500ms inference time.<br><br>
                                     <strong>AES and RSA Data Storage</strong><br>
-                                    Designed a two-layer envelope encryption scheme ensuring data confidentiality and integrity.
+                                    Two-layer envelope encryption scheme with AES throughput of 200 MB/s and RSA key latency under 10ms.
+                                </p>
+                            </section>
+
+                            <section>
+                                <h2 class="section-heading">RESEARCH</h2>
+                                <p class="section-text">
+                                    <strong>Zero Trust Enhanced Defense Mechanisms for Mitigating Social Engineering in Online Social Networks</strong><br>
+                                    BITS Pilani, Dubai Campus (February – May 2026)<br><br>
+                                    Designed a novel dual-encoder Zero Trust pipeline extending NIST SP 800-207 to social engineering detection on LinkedIn. Achieved F1=0.833 and AUROC=0.861, outperforming ConvoSentinel (F1=0.74) and GPT-4-Turbo (F1=0.67).
                                 </p>
                             </section>
 
                             <section>
                                 <h2 class="section-heading">EXPERIENCE</h2>
                                 <p class="section-text">
-                                    <strong>Technology Intern</strong><br>
-                                    Everest DG & EIT Global, Dubai, UAE (June – July 2024)<br><br>
+                                    <strong>Design Intern</strong><br>
+                                    Everest DG &amp; EIT Global, Dubai, UAE (June – July 2024)<br><br>
                                     <strong>Embedded Systems Intern</strong><br>
                                     Vector Techniques (BLDC Motors), Hyderabad (June – July 2023)
                                 </p>

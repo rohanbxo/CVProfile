@@ -21,6 +21,26 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    // --- Music Toggle Logic ---
+    const music = document.getElementById('bg-music');
+    const musicToggle = document.getElementById('music-toggle');
+    const iconOn = document.getElementById('music-icon-on');
+    const iconOff = document.getElementById('music-icon-off');
+    let playing = false;
+
+    musicToggle.addEventListener('click', () => {
+        if (playing) {
+            music.pause();
+            iconOn.style.display = 'none';
+            iconOff.style.display = '';
+        } else {
+            music.play().catch(() => {});
+            iconOn.style.display = '';
+            iconOff.style.display = 'none';
+        }
+        playing = !playing;
+    });
+
     // --- 3D Folding Logic ---
     // 1. First, duplicate the actual inner content into the top and bottom folds
     //    so we only have to write our HTML once.

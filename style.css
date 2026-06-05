@@ -303,6 +303,42 @@ p {
     opacity: 1;
 }
 
+/* Music Toggle Button */
+#music-toggle {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: transparent;
+    border: 2px solid #fce81f;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #fce81f;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 1000;
+    padding: 8px;
+}
+
+#music-toggle:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+@media only screen and (max-width: 768px) {
+    #music-toggle {
+        bottom: 1.5rem;
+        right: 1rem;
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+    }
+}
+
 /* Toast Notification */
 #toast {
     position: fixed;
