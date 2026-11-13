@@ -22,7 +22,9 @@
 }
 
 html {
-    overflow-x: hidden;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
     cursor: var(--cursor-rocket);
     -webkit-tap-highlight-color: transparent;
 }
@@ -39,9 +41,13 @@ body {
     background: #000;
     color: var(--yellow);
     font-family: 'Pathway Gothic One', 'Helvetica', sans-serif;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
+    /* The page itself never scrolls: #center-fold is the scroller. */
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
     width: 100%;
+    /* Lets the mirrors and progress rail (not descendants) see the timeline. */
+    timeline-scope: --fold;
 }
 
 :focus-visible {
@@ -131,6 +137,9 @@ body {
 
 /* --------------------------------------------------------------------------
    3D folded scroll
+   The centre fold is the real scroll container (native, compositor-driven).
+   The top and bottom folds are mirrors kept in sync with its scrollTop by a
+   CSS scroll-driven animation, or by main.js where that is unsupported.
    -------------------------------------------------------------------------- */
 .all {
     position: fixed;
@@ -165,8 +174,53 @@ body {
 
 .fold-content {
     display: block;
-    will-change: transform;
     width: 100%;
+}
+
+#center-fold {
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* No rubber-band: the mirrors clamp at the ends, so a bounce would
+       open a gap at the fold seams. */
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-timeline: --fold block;
+    /* Hidden scrollbar keeps the centre exactly as wide as the mirrors;
+       the progress rail shows position instead. */
+    scrollbar-width: none;
+}
+#center-fold::-webkit-scrollbar {
+    display: none;
+}
+#center-fold:focus {
+    outline: none;
+}
+
+.foldTop .fold-content,
+.foldBottom .fold-content {
+    will-change: transform;
+}
+
+/* Scroll-driven sync: 0 → -max-scroll across the centre fold's scroll range.
+   main.js sets --max-scroll and adds .sda only when this is supported. */
+@keyframes fold-sync {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(0, calc(-1 * var(--max-scroll, 0px)), 0); }
+}
+@keyframes progress-sync {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+}
+.sda .foldTop .fold-content,
+.sda .foldBottom .fold-content {
+    animation: fold-sync linear both;
+    animation-duration: auto;
+    animation-timeline: --fold;
+}
+.sda .progress-fill {
+    animation: progress-sync linear both;
+    animation-duration: auto;
+    animation-timeline: --fold;
 }
 
 .foldBefore {
@@ -733,5 +787,11 @@ sup {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+    /* Scroll sync is position, not motion: keep it tied to the scroll range. */
+    .sda .foldTop .fold-content,
+    .sda .foldBottom .fold-content,
+    .sda .progress-fill {
+        animation-duration: auto !important;
     }
 }

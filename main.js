@@ -83,44 +83,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const stars = createStarfield(document.getElementById('stars'), reducedMotion, mobile);
 
     // --- 3D folded scroll ----------------------------------------------
-    // Mirror the centre content into the decorative (aria-hidden, inert) folds.
+    // #center-fold is the real, native scroll container. The top and bottom
+    // folds are decorative mirrors (aria-hidden, inert) that follow its
+    // scrollTop: via a CSS scroll-driven animation where supported (runs on
+    // the compositor with the scroll), otherwise via one rAF per scroll.
     const centerFold = document.getElementById('center-fold');
     const centerContent = document.getElementById('center-content');
     document.getElementById('top-content').innerHTML = centerContent.innerHTML;
     document.getElementById('bottom-content').innerHTML = centerContent.innerHTML;
 
-    const foldsContent = document.querySelectorAll('.fold-content');
+    const mirrors = document.querySelectorAll('.foldTop .fold-content, .foldBottom .fold-content');
     const progressFill = document.querySelector('.progress-fill');
+    const useTimeline = window.CSS && CSS.supports
+        && CSS.supports('animation-timeline: scroll()')
+        && CSS.supports('timeline-scope: --fold');
+    if (useTimeline) document.documentElement.classList.add('sda');
     let maxScroll = 0;
 
-    // Mobile browsers (iOS Safari especially) collapse the address bar while
-    // scrolling, which makes innerHeight grow. Size the page for the large
-    // viewport so the full scroll range exists whichever state the bar is in.
-    const largeViewport = document.createElement('div');
-    largeViewport.setAttribute('aria-hidden', 'true');
-    largeViewport.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100vh;height:100lvh;visibility:hidden;pointer-events:none';
-    document.body.appendChild(largeViewport);
-
-    function updateBodyHeight() {
-        maxScroll = Math.max(0, centerContent.offsetHeight - centerFold.clientHeight);
-        const viewport = mobile.matches
-            ? Math.max(window.innerHeight, largeViewport.offsetHeight)
-            : window.innerHeight;
-        document.body.style.height = `${maxScroll + viewport}px`;
+    function measure() {
+        maxScroll = Math.max(0, centerFold.scrollHeight - centerFold.clientHeight);
+        document.documentElement.style.setProperty('--max-scroll', `${maxScroll}px`);
         render();
     }
 
     function render() {
-        // Clamp at 0 too: iOS rubber-band overscroll reports negative scrollY.
-        const y = Math.max(0, Math.min(window.scrollY, maxScroll));
-        const t = `translate3d(0, ${-y}px, 0)`;
-        foldsContent.forEach((el) => { el.style.transform = t; });
-        progressFill.style.transform = `scaleY(${maxScroll ? y / maxScroll : 0})`;
+        // Clamp: iOS rubber-band overscroll can report out-of-range values.
+        const y = Math.max(0, Math.min(centerFold.scrollTop, maxScroll));
+        if (!useTimeline) {
+            const t = `translate3d(0, ${-y}px, 0)`;
+            mirrors.forEach((el) => { el.style.transform = t; });
+            progressFill.style.transform = `scaleY(${maxScroll ? y / maxScroll : 0})`;
+        }
         stars.onScroll(y);
     }
 
     let ticking = false;
-    window.addEventListener('scroll', () => {
+    centerFold.addEventListener('scroll', () => {
         if (ticking) return;
         ticking = true;
         requestAnimationFrame(() => {
@@ -129,29 +127,81 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, { passive: true });
 
-    // On phones the address bar showing and hiding fires resize events all
-    // through a scroll. Only recompute for a real change: a new width, or a
-    // height change bigger than the address bar.
+    // Phones fire resizes as the address bar moves; only a width change (or
+    // a big height change) alters the scroll range. The folds use dvh there.
     let lastW = window.innerWidth, lastH = window.innerHeight;
     window.addEventListener('resize', () => {
         const w = window.innerWidth, h = window.innerHeight;
         if (mobile.matches && w === lastW && Math.abs(h - lastH) <= 150) return;
         lastW = w;
         lastH = h;
-        updateBodyHeight();
+        measure();
     });
-    window.addEventListener('load', updateBodyHeight);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateBodyHeight);
-    if ('ResizeObserver' in window) new ResizeObserver(updateBodyHeight).observe(centerContent);
+    window.addEventListener('load', measure);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+    if ('ResizeObserver' in window) {
+        const ro = new ResizeObserver(measure);
+        ro.observe(centerContent);
+        ro.observe(centerFold);
+    }
 
-    // The fold clips its content with overflow:hidden, and the browser will
-    // still scroll it for focus, find-in-page and screen-reader navigation.
-    // That desyncs the three folds, so turn any fold scroll into page scroll.
-    centerFold.addEventListener('scroll', () => {
-        const dy = centerFold.scrollTop;
-        centerFold.scrollTop = 0;
-        centerFold.scrollLeft = 0;
-        if (dy) window.scrollTo(0, Math.min(maxScroll, window.scrollY + dy));
+    // The page itself does not scroll, so input that lands outside the
+    // centre fold (mirror strips, margins) is passed on to it.
+    const outside = (target) => !centerFold.contains(target);
+
+    window.addEventListener('wheel', (e) => {
+        if (e.ctrlKey || e.defaultPrevented || !outside(e.target)) return;
+        const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? centerFold.clientHeight : 1;
+        e.preventDefault();
+        centerFold.scrollBy({ top: e.deltaY * unit, behavior: 'instant' });
+    }, { passive: false });
+
+    // Touch on the strips: passive listeners (they never block native
+    // scrolling of the fold), with a short glide on release.
+    let touchY = null, touchT = 0, velocity = 0;
+    window.addEventListener('touchstart', (e) => {
+        touchY = e.touches.length === 1 && outside(e.target) ? e.touches[0].clientY : null;
+        touchT = performance.now();
+        velocity = 0;
+    }, { passive: true });
+    window.addEventListener('touchmove', (e) => {
+        if (touchY === null) return;
+        const y = e.touches[0].clientY, now = performance.now();
+        const dy = touchY - y;
+        centerFold.scrollTop += dy;
+        velocity = dy / Math.max(1, now - touchT);
+        touchY = y;
+        touchT = now;
+    }, { passive: true });
+    window.addEventListener('touchend', () => {
+        if (touchY === null) return;
+        touchY = null;
+        if (Math.abs(velocity) > 0.2 && performance.now() - touchT < 100) {
+            centerFold.scrollBy({ top: velocity * 300, behavior: reducedMotion.matches ? 'instant' : 'smooth' });
+        }
+    }, { passive: true });
+
+    // Keyboard: when nothing inside the fold has focus, the browser has no
+    // scroller to send Space/arrows/PageDown to, so route them to the fold.
+    const keySteps = {
+        ArrowDown: () => 40, ArrowUp: () => -40,
+        PageDown: () => centerFold.clientHeight * 0.85, PageUp: () => -centerFold.clientHeight * 0.85,
+        ' ': (e) => (e.shiftKey ? -1 : 1) * centerFold.clientHeight * 0.85,
+        Home: () => -Infinity, End: () => Infinity,
+    };
+    document.addEventListener('keydown', (e) => {
+        if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+        const t = e.target;
+        const free = t === document.body || t === document.documentElement
+            || (t.tagName === 'A' && outside(t));
+        if (!free) return;
+        const step = keySteps[e.key];
+        if (!step) return;
+        e.preventDefault();
+        const d = step(e);
+        const behavior = reducedMotion.matches ? 'instant' : 'smooth';
+        if (d === Infinity || d === -Infinity) centerFold.scrollTo({ top: d > 0 ? maxScroll : 0, behavior });
+        else centerFold.scrollBy({ top: d, behavior });
     });
 
     // Keyboard focus: bring the focused element to the middle of the
@@ -159,12 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
     centerContent.addEventListener('focusin', (e) => {
         const el = e.target;
         requestAnimationFrame(() => {
-            centerFold.scrollTop = 0;
             const offset = el.getBoundingClientRect().top - centerContent.getBoundingClientRect().top;
             const target = offset - centerFold.clientHeight / 2 + el.offsetHeight / 2;
-            window.scrollTo({
+            centerFold.scrollTo({
                 top: Math.max(0, Math.min(maxScroll, target)),
-                behavior: reducedMotion.matches ? 'auto' : 'smooth',
+                behavior: reducedMotion.matches ? 'instant' : 'smooth',
             });
         });
     });
@@ -172,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Exhaust trail --------------------------------------------------
     createTrail(document.getElementById('trail'), finePointer, reducedMotion);
 
-    updateBodyHeight();
+    measure();
 });
 
 // On mobile the starfield is static: half the stars, DPR 1, no twinkle loop,
