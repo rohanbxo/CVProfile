@@ -690,6 +690,40 @@ sup {
 }
 
 /* --------------------------------------------------------------------------
+   Phones and small screens: lighter rendering, same look
+   -------------------------------------------------------------------------- */
+@media (hover: none) and (pointer: coarse), (max-width: 768px) {
+    /* svh, not dvh: the address bar showing and hiding must not resize the folds. */
+    .all {
+        height: 100vh;
+        height: 100svh;
+    }
+    .fold {
+        height: 80vh;
+        height: 80svh;
+        contain: layout paint;
+    }
+    .fold-content {
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+    /* No hover transitions on touch. */
+    .repo-link,
+    .cv-button,
+    .social-links a,
+    #music-toggle {
+        transition: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .fold {
+        height: 75vh;
+        height: 75svh;
+    }
+}
+
+/* --------------------------------------------------------------------------
    Reduced motion
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {

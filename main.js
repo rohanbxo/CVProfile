@@ -2,6 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const EMAIL = 'rohanburugapalli@gmail.com';
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    // Phones and small screens get the lighter rendering path.
+    const mobile = window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 768px)');
 
     // --- Loader ---------------------------------------------------------
     const loader = document.getElementById('loader');
@@ -78,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Starfield ------------------------------------------------------
-    const stars = createStarfield(document.getElementById('stars'), reducedMotion);
+    const stars = createStarfield(document.getElementById('stars'), reducedMotion, mobile);
 
     // --- 3D folded scroll ----------------------------------------------
     // Mirror the centre content into the decorative (aria-hidden, inert) folds.
@@ -91,14 +93,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressFill = document.querySelector('.progress-fill');
     let maxScroll = 0;
 
+    // Mobile browsers (iOS Safari especially) collapse the address bar while
+    // scrolling, which makes innerHeight grow. Size the page for the large
+    // viewport so the full scroll range exists whichever state the bar is in.
+    const largeViewport = document.createElement('div');
+    largeViewport.setAttribute('aria-hidden', 'true');
+    largeViewport.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100vh;height:100lvh;visibility:hidden;pointer-events:none';
+    document.body.appendChild(largeViewport);
+
     function updateBodyHeight() {
         maxScroll = Math.max(0, centerContent.offsetHeight - centerFold.clientHeight);
-        document.body.style.height = `${maxScroll + window.innerHeight}px`;
+        const viewport = mobile.matches
+            ? Math.max(window.innerHeight, largeViewport.offsetHeight)
+            : window.innerHeight;
+        document.body.style.height = `${maxScroll + viewport}px`;
         render();
     }
 
     function render() {
-        const y = Math.min(window.scrollY, maxScroll);
+        // Clamp at 0 too: iOS rubber-band overscroll reports negative scrollY.
+        const y = Math.max(0, Math.min(window.scrollY, maxScroll));
         const t = `translate3d(0, ${-y}px, 0)`;
         foldsContent.forEach((el) => { el.style.transform = t; });
         progressFill.style.transform = `scaleY(${maxScroll ? y / maxScroll : 0})`;
@@ -115,7 +129,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, { passive: true });
 
-    window.addEventListener('resize', updateBodyHeight);
+    // On phones the address bar showing and hiding fires resize events all
+    // through a scroll. Only recompute for a real change: a new width, or a
+    // height change bigger than the address bar.
+    let lastW = window.innerWidth, lastH = window.innerHeight;
+    window.addEventListener('resize', () => {
+        const w = window.innerWidth, h = window.innerHeight;
+        if (mobile.matches && w === lastW && Math.abs(h - lastH) <= 150) return;
+        lastW = w;
+        lastH = h;
+        updateBodyHeight();
+    });
     window.addEventListener('load', updateBodyHeight);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateBodyHeight);
     if ('ResizeObserver' in window) new ResizeObserver(updateBodyHeight).observe(centerContent);
@@ -151,18 +175,23 @@ document.addEventListener('DOMContentLoaded', () => {
     updateBodyHeight();
 });
 
-function createStarfield(canvas, reducedMotion) {
+// On mobile the starfield is static: half the stars, DPR 1, no twinkle loop,
+// redrawn only on a width change and (throttled to 30fps) for parallax.
+function createStarfield(canvas, reducedMotion, mobile) {
     const ctx = canvas.getContext('2d');
+    const MOBILE_FRAME = 1000 / 30;
     let w = 0, h = 0, dpr = 1, list = [], scrollY = 0, rafId = 0;
+    let lastDraw = 0, trailing = 0, builtWidth = 0;
 
     function build() {
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        dpr = mobile.matches ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+        builtWidth = window.innerWidth;
         w = window.innerWidth;
         h = window.innerHeight;
         canvas.width = Math.round(w * dpr);
         canvas.height = Math.round(h * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const count = Math.round((w * h) / 6500);
+        const count = Math.round((w * h) / (mobile.matches ? 13000 : 6500));
         list = Array.from({ length: count }, () => {
             const big = Math.random() < 0.08;
             return {
@@ -179,6 +208,7 @@ function createStarfield(canvas, reducedMotion) {
     }
 
     function draw(time) {
+        lastDraw = performance.now();
         ctx.clearRect(0, 0, w, h);
         const animate = !reducedMotion.matches;
         for (const s of list) {
@@ -202,7 +232,7 @@ function createStarfield(canvas, reducedMotion) {
     function start() {
         cancelAnimationFrame(rafId);
         rafId = 0;
-        if (reducedMotion.matches || document.hidden) {
+        if (mobile.matches || reducedMotion.matches || document.hidden) {
             draw(0);
         } else {
             rafId = requestAnimationFrame(loop);
@@ -211,14 +241,26 @@ function createStarfield(canvas, reducedMotion) {
 
     build();
     start();
-    window.addEventListener('resize', () => { build(); if (!rafId) draw(0); });
+    window.addEventListener('resize', () => {
+        // Mobile: ignore the address bar's height changes; rebuild on width only.
+        if (mobile.matches && window.innerWidth === builtWidth) return;
+        build();
+        if (!rafId) draw(0);
+    });
     document.addEventListener('visibilitychange', start);
     if (reducedMotion.addEventListener) reducedMotion.addEventListener('change', start);
+    if (mobile.addEventListener) mobile.addEventListener('change', () => { build(); start(); });
 
     return {
         onScroll(y) {
             scrollY = y;
-            if (!rafId) draw(0); // static mode only redraws on scroll
+            if (rafId) return;
+            if (!mobile.matches) { draw(0); return; } // static mode only redraws on scroll
+            // Mobile: parallax redraws at most 30 times a second, plus one
+            // trailing draw so the stars land where the scroll stopped.
+            const wait = MOBILE_FRAME - (performance.now() - lastDraw);
+            if (wait <= 0) { clearTimeout(trailing); trailing = 0; draw(0); return; }
+            if (!trailing) trailing = setTimeout(() => { trailing = 0; draw(0); }, wait);
         },
     };
 }
