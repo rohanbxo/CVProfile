@@ -267,8 +267,8 @@ function createTrail(canvas, finePointer, reducedMotion) {
         const n = 1 + Math.floor(Math.random() * 4);
         for (let i = 0; i < n; i++) {
             particles.push({
-                x: e.clientX + 18 + (Math.random() - 0.5) * 3,
-                y: e.clientY + 18 + (Math.random() - 0.5) * 3,
+                x: e.clientX + 12 + (Math.random() - 0.5) * 3,
+                y: e.clientY + 12 + (Math.random() - 0.5) * 3,
                 vx: 0.3 + Math.random() * 0.6,
                 vy: 0.3 + Math.random() * 0.6,
                 r: 1 + Math.random() * 1.6,
