@@ -87,9 +87,6 @@ body {
     background: var(--yellow);
     transform-origin: top center;
     transform: scaleY(0);
-    /* Its own tiny layer: otherwise each scaleY update re-rasters a tile of
-       the page-sized root layer. */
-    will-change: transform;
 }
 
 /* --------------------------------------------------------------------------
@@ -168,19 +165,8 @@ body {
 
 .fold-content {
     display: block;
-    width: 100%;
-    /* Measured: inside the perspective/rotateX folds, Chrome re-rasters these
-       layers every frame as their transform changes unless they are marked
-       will-change. Kept on permanently; toggling it would re-raster at the
-       start of every scroll. */
     will-change: transform;
-}
-
-/* While the folds glide, keep hover off the moving content: links sliding
-   under a resting pointer would otherwise start colour transitions that
-   repaint the whole fold layer every frame. */
-.is-scrolling .all {
-    pointer-events: none;
+    width: 100%;
 }
 
 .foldBefore {
