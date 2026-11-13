@@ -3,140 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Folded Scroll</title>
+    <title>Rohan Burugapalli · AI &amp; Backend Engineer · CVProfile</title>
+    <meta name="description" content="Rohan Burugapalli, AI &amp; Backend Engineer. LLM systems that are safe to point at real data: permission-enforcing backends, tested agents and honest evaluations.">
+    <meta name="theme-color" content="#000000">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Rohan Burugapalli · AI &amp; Backend Engineer">
+    <meta property="og:description" content="I build LLM systems that are safe to point at real data: backends where permissions are enforced in code, agents that are tested before they are trusted, and evaluations that say whether a model actually works.">
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Pathway+Gothic+One&display=swap">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Decorative layers -->
+    <canvas id="stars" aria-hidden="true"></canvas>
+    <canvas id="trail" aria-hidden="true"></canvas>
+    <div class="progress-rail" aria-hidden="true"><div class="progress-fill"></div></div>
+
     <!-- Loading Screen -->
-    <div id="loader">
-        <svg class="jet" viewBox="0 0 24 24" fill="none" stroke="#fce81f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2L12 22"/>
-            <path d="M12 2L8 10L4 14L8 18"/>
-            <path d="M12 2L16 10L20 14L16 18"/>
-            <path d="M8 18L12 14L16 18"/>
-        </svg>
+    <div id="loader" aria-hidden="true">
+        <img class="jet" src="assets/cursor-rocket-boost.svg" width="96" height="96" alt="">
     </div>
 
     <!-- Fixed Social Links -->
-    <nav class="social-links">
-        <a href="https://linkedin.com/in/rohan-burugapalli" target="_blank" aria-label="LinkedIn">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+    <nav class="social-links" aria-label="Contact and profiles">
+        <a href="https://linkedin.com/in/rohanburugapalli" target="_blank" rel="noopener" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
         </a>
-        <a href="https://github.com/rohanbxo" target="_blank" aria-label="GitHub">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+        <a href="https://github.com/rohanbxo" target="_blank" rel="noopener" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
         </a>
-        <a href="mailto:rohanburugapalli@gmail.com" aria-label="Email" id="copy-email-btn">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.866l5.6-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/></svg>
+        <a href="mailto:rohanburugapalli@gmail.com" aria-label="Copy email address" id="copy-email-btn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.866l5.6-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/></svg>
         </a>
+        <a href="BurugapalliRohan.pdf" target="_blank" rel="noopener" class="cv-pill" aria-label="Open CV (PDF)">CV</a>
     </nav>
 
-    <!-- Background Music -->
-    <audio id="bg-music" loop>
+    <!-- Background Music (hidden automatically when the track is missing) -->
+    <audio id="bg-music" loop preload="metadata">
         <source src="test.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Music Toggle Button -->
-    <button id="music-toggle" aria-label="Toggle music" title="Toggle music">
-        <svg id="music-icon-on" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M9 3v10.55A4 4 0 1 0 11 17V7h4V3H9z"/></svg>
-        <svg id="music-icon-off" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3v10.55A4 4 0 1 0 11 17V7h4V3H9z"/><line x1="2" y1="2" x2="22" y2="22" stroke="currentColor" stroke-width="2"/></svg>
+    <button id="music-toggle" type="button" aria-pressed="false" aria-label="Play background music" title="Play background music">
+        <svg id="music-icon-on" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false" hidden><path d="M9 3v10.55A4 4 0 1 0 11 17V7h4V3H9z"/></svg>
+        <svg id="music-icon-off" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M9 3v10.55A4 4 0 1 0 11 17V7h4V3H9z"/><line x1="2" y1="2" x2="22" y2="22" stroke="currentColor" stroke-width="2"/></svg>
     </button>
 
     <!-- Toast Notification -->
-    <div id="toast" class="toast hidden">Email copied to clipboard!</div>
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
     <div class="all">
         <div class="wrapper3d">
-            <!-- Top Fold -->
-            <div class="fold foldTop foldBefore">
+            <!-- Top Fold (visual mirror only) -->
+            <div class="fold foldTop foldBefore" aria-hidden="true" inert>
                 <div class="foldAlign">
-                    <div class="fold-content" id="top-content">
-                        <!-- Same content inside all three folds -->
-                    </div>
+                    <div class="fold-content" id="top-content"></div>
                 </div>
             </div>
 
-            <!-- Center Fold -->
+            <!-- Center Fold: the real, readable content -->
             <div class="fold" id="center-fold">
                 <div class="foldAlign">
-                    <div class="fold-content" id="center-content">
-                        <div class="inner-content" id="actual-content">
-                            <div class="title">
-                                <p>Computer Science Student</p>
+                    <main class="fold-content" id="center-content">
+                        <div class="inner-content">
+                            <header class="title">
+                                <p class="eyebrow">AI &amp; Backend Engineer</p>
                                 <h1>ROHAN BURUGAPALLI</h1>
-                            </div>
-
-                            <p>Computer Science student specialising in NLP, machine learning, and AI application development. Experienced in fine-tuning transformer models, building RAG pipelines, and deploying LLM-based systems using Python, PyTorch, and modern AI frameworks. Skilled in developing end-to-end solutions from model training to production deployment across AI and data science.</p>
+                                <p class="tagline">I build LLM systems that are safe to point at real data: backends where permissions are enforced in code, agents that are tested before they are trusted, and evaluations that say whether a model actually works.</p>
+                            </header>
 
                             <section>
-                                <h2 class="section-heading">TECHNICAL SKILLS</h2>
-                                <p class="section-text"><strong>Programming:</strong> Python, C++, Java<br>
-                                <strong>ML/AI:</strong> PyTorch, TensorFlow, HuggingFace Transformers, NLP, RAG, LLMs, Prompt Engineering<br>
-                                <strong>Data:</strong> Pandas, NumPy, FastEmbed, Vector Databases, SQL<br>
-                                <strong>Frameworks/Libraries:</strong> FastAPI, LlamaIndex, LangChain, Groq, REST APIs, Git<br>
-                                <strong>Relevant Coursework:</strong> DSA, OOPs, DBMS, Data Science, Cryptography, Blockchain, LLMs</p>
+                                <h2 class="section-heading">EXPERIENCE</h2>
+
+                                <article class="entry">
+                                    <div class="entry-head">
+                                        <h3>AI/ML Engineer Intern <span class="org">· Tolour</span></h3>
+                                        <p class="meta">Jan 2026 – Jul 2026 · Remote</p>
+                                    </div>
+                                    <ul class="bullets">
+                                        <li>Built the FastAPI and Redis backend for an LLM assistant that reads and edits records through natural language.</li>
+                                        <li>Split the assistant into a planner that decides what data a request needs and a separate executor that accesses and acts on it, so one wrong decision cannot pass through unchecked.</li>
+                                        <li>Designed 5 layers of access control (role permissions, PII field blocking, record-level ownership checks, confirm-before-write, hard block on unauthorised data), all enforced in code rather than left to the model.</li>
+                                        <li>Wrote 8 isolated test suites covering every operation across two user roles, catching permission leaks, fabricated answers and wrong refusals before production.</li>
+                                        <li>Added logging, Langfuse tracing and Redis rate limiting; contributed to a LangGraph + LiveKit voice agent.</li>
+                                    </ul>
+                                </article>
+
+                                <article class="entry">
+                                    <div class="entry-head">
+                                        <h3>Design Intern <span class="org">· Everest DG &amp; EIT Global</span></h3>
+                                        <p class="meta">Jun 2024 – Aug 2024 · Dubai, UAE</p>
+                                    </div>
+                                    <ul class="bullets">
+                                        <li>Built interactive web and product prototypes for team and client review.</li>
+                                    </ul>
+                                </article>
+
+                                <article class="entry">
+                                    <div class="entry-head">
+                                        <h3>Embedded Systems Intern <span class="org">· Vector Techniques</span></h3>
+                                        <p class="meta">Jun 2023 – Aug 2023 · Hyderabad, India</p>
+                                    </div>
+                                    <ul class="bullets">
+                                        <li>Collected BLDC motor speed data under varying loads using embedded C and sensors, then analysed it to identify optimal operating parameters and reduce performance variance.</li>
+                                    </ul>
+                                </article>
                             </section>
 
                             <section>
                                 <h2 class="section-heading">PROJECTS</h2>
-                                <p class="section-text">
-                                    <strong>MCP Tool-Response Security Firewall</strong><br>
-                                    ML-based security layer for Model Context Protocol pipelines detecting prompt injection and tool-poisoning attacks using NLP classifiers and HuggingFace Transformers.<br><br>
-                                    <strong>PDF and Web Content Study Assistant</strong><br>
-                                    Full-stack RAG application with FastAPI and LlamaIndex for intelligent Q&amp;A with &lt;2s response times using Groq LLM inference and FastEmbed vector embeddings.<br><br>
-                                    <strong>AI News Aggregator</strong><br>
-                                    Generative AI pipeline using Groq (Llama 3.3 70B) to scrape and summarise AI news, with automated daily email delivery, Neon Postgres duplicate tracking, and multi-provider LLM fallback.<br><br>
-                                    <strong>ZK-Based Private Token Transfer System</strong><br>
-                                    Privacy layer for Ethereum using Circom zk-SNARK circuits and Groth16, with shielded pool architecture and Merkle tree commitment scheme.<br><br>
-                                    <strong>Phishing Email and URL Detector</strong><br>
-                                    AI-powered phishing detection system fine-tuning DistilBERT achieving 92% accuracy and 500ms inference time.<br><br>
-                                    <strong>AES and RSA Data Storage</strong><br>
-                                    Two-layer envelope encryption scheme with AES throughput of 200 MB/s and RSA key latency under 10ms.
-                                </p>
+
+                                <article class="entry">
+                                    <div class="entry-head">
+                                        <h3>PR Review Agent</h3>
+                                        <a class="repo-link" href="https://github.com/rohanbxo/pr-review-agent" target="_blank" rel="noopener" aria-label="PR Review Agent on GitHub">GitHub ↗</a>
+                                    </div>
+                                    <ul class="chips" aria-label="Tech stack">
+                                        <li>Python</li><li>FastAPI</li><li>LangGraph</li><li>Postgres</li><li>Redis</li><li>Next.js</li>
+                                    </ul>
+                                    <ul class="stats">
+                                        <li><span class="stat-num">76%</span><span class="stat-label">real reverted bugs found</span></li>
+                                        <li><span class="stat-num">71%</span><span class="stat-label">clean PRs left silent</span></li>
+                                        <li><span class="stat-num">20/20</span><span class="stat-label">prompt injections contained</span></li>
+                                        <li><span class="stat-num">$0.10</span><span class="stat-label">per review</span></li>
+                                    </ul>
+                                    <ul class="bullets">
+                                        <li>LangGraph agent that reviews GitHub pull requests and returns findings pinned to file and line ranges; GitHub access is read-only at the transport layer, enforced before a socket opens.</li>
+                                        <li>GitHub OAuth, permission-based RBAC, per-user sliding-window rate limits in Redis, and audit rows committed in the same transaction as each action; every security claim is backed by a test.</li>
+                                        <li>Evaluated on 215 cases against a baseline: found 76% of real reverted bugs and localised all of them, stayed silent on 71% of clean PRs at $0.10 per review; contained 20/20 live prompt-injection attacks.</li>
+                                    </ul>
+                                </article>
+
+                                <article class="entry">
+                                    <div class="entry-head">
+                                        <h3>Beta <span class="org">· Reminder-First Habit Tracker</span></h3>
+                                        <a class="repo-link" href="https://github.com/rohanbxo/Healthmax" target="_blank" rel="noopener" aria-label="Beta habit tracker on GitHub">GitHub ↗</a>
+                                    </div>
+                                    <ul class="chips" aria-label="Tech stack">
+                                        <li>TypeScript</li><li>Express</li><li>Prisma</li><li>Postgres</li><li>Redis</li><li>BullMQ</li><li>AWS S3/SES</li>
+                                    </ul>
+                                    <ul class="bullets">
+                                        <li>Full-stack habit tracker that pushes a notification when each habit is due, even with the app closed; the React PWA and Express API share a TypeScript core so due times match in each user's timezone.</li>
+                                        <li>Reminder engine: each habit change triggers a BullMQ job that replans the user's reminders, and a worker claims due ones with Postgres <code>SKIP LOCKED</code> for at-most-once delivery, re-checking completions and snoozes before sending.</li>
+                                        <li>Short-lived access tokens with rotating refresh cookies, where reusing an old token signs out the whole session; Redis caching and per-user rate limits; CI tests against real Postgres and Redis.</li>
+                                        <li>Cloud exports to S3 via presigned URLs and password-reset email via SES (AWS SDK v3), developed and tested in CI against a local AWS emulator (Floci + Mailpit); Docker Compose dev stack.</li>
+                                    </ul>
+                                </article>
+
+                                <article class="entry">
+                                    <div class="entry-head">
+                                        <h3>EvalHarness <span class="org">· LLM Tool-Use Evaluation</span></h3>
+                                        <a class="repo-link" href="https://github.com/rohanbxo/eval-harness" target="_blank" rel="noopener" aria-label="EvalHarness on GitHub">GitHub ↗</a>
+                                    </div>
+                                    <ul class="chips" aria-label="Tech stack">
+                                        <li>Python</li><li>FastAPI</li><li>Celery</li><li>Postgres</li><li>Next.js</li>
+                                    </ul>
+                                    <ul class="bullets">
+                                        <li>Config-driven harness grading how LLMs call tools in multi-turn workflows with deterministic assertions; each scenario runs k times for pass<sup>k</sup> consistency, with results tied to a config hash.</li>
+                                        <li>Across 4 models and 100 attempts, caught a model obeying a prompt injection that a regex check scored clean, and showed no pair of models was separable at n=25.</li>
+                                    </ul>
+                                </article>
                             </section>
 
                             <section>
-                                <h2 class="section-heading">RESEARCH</h2>
-                                <p class="section-text">
-                                    <strong>Zero Trust Enhanced Defense Mechanisms for Mitigating Social Engineering in Online Social Networks</strong><br>
-                                    BITS Pilani, Dubai Campus (February – May 2026)<br><br>
-                                    Designed a novel dual-encoder Zero Trust pipeline extending NIST SP 800-207 to social engineering detection on LinkedIn. Achieved F1=0.833 and AUROC=0.861, outperforming ConvoSentinel (F1=0.74) and GPT-4-Turbo (F1=0.67).
-                                </p>
+                                <h2 class="section-heading">TECHNICAL SKILLS</h2>
+                                <dl class="skills">
+                                    <dt>Languages</dt>
+                                    <dd>Python, TypeScript, SQL, Java, C++</dd>
+                                    <dt>Backend</dt>
+                                    <dd>FastAPI, Express, Prisma, Postgres, Redis, Celery, BullMQ, REST/OpenAPI, OAuth/JWT, nginx</dd>
+                                    <dt>AI/ML</dt>
+                                    <dd>PyTorch, Hugging Face Transformers, LangGraph, LlamaIndex, RAG, Chroma, Langfuse, LLM evaluation</dd>
+                                    <dt>Tools</dt>
+                                    <dd>Docker, GitHub Actions, pytest, Mocha, Vitest, Git</dd>
+                                </dl>
                             </section>
 
                             <section>
-                                <h2 class="section-heading">EXPERIENCE</h2>
-                                <p class="section-text">
-                                    <strong>Design Intern</strong><br>
-                                    Everest DG &amp; EIT Global, Dubai, UAE (June – July 2024)<br><br>
-                                    <strong>Embedded Systems Intern</strong><br>
-                                    Vector Techniques (BLDC Motors), Hyderabad (June – July 2023)
-                                </p>
+                                <h2 class="section-heading">EDUCATION</h2>
+                                <article class="entry">
+                                    <div class="entry-head">
+                                        <h3>B.Tech, Computer Science &amp; Engineering <span class="org">· BITS Pilani</span></h3>
+                                        <p class="meta">Sep 2022 – Jul 2026 · Dubai, UAE</p>
+                                    </div>
+                                    <ul class="bullets">
+                                        <li>Thesis: Zero Trust Defences Against Social Engineering in Online Social Networks.</li>
+                                    </ul>
+                                </article>
                             </section>
-                            
-                            <p style="margin-top: 30vh; text-align: center;">May the Force be with you.</p>
-                            
-                            <div style="text-align: center; padding-bottom: 200px;">
-                                <a href="BurugapalliRohan.pdf" target="_blank" class="cv-button">
-                                    Access CV
-                                </a>
-                            </div>
+
+                            <footer class="signoff">
+                                <p class="force">May the Force be with you.</p>
+                                <div class="cta">
+                                    <a href="BurugapalliRohan.pdf" target="_blank" rel="noopener" class="cv-button">Access CV</a>
+                                    <a href="mailto:rohanburugapalli@gmail.com" class="cv-button ghost">Get in touch</a>
+                                </div>
+                            </footer>
                         </div>
-                    </div>
+                    </main>
                 </div>
             </div>
 
-            <!-- Bottom Fold -->
-            <div class="fold foldBottom foldAfter">
+            <!-- Bottom Fold (visual mirror only) -->
+            <div class="fold foldBottom foldAfter" aria-hidden="true" inert>
                 <div class="foldAlign">
-                    <div class="fold-content" id="bottom-content">
-                        <!-- Same content inside all three folds -->
-                    </div>
+                    <div class="fold-content" id="bottom-content"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JS injected to easily mirror the "actual-content" into the top and bottom folds -->
     <script src="main.js"></script>
 </body>
 </html>

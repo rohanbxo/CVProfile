@@ -1,89 +1,284 @@
-document.addEventListener("DOMContentLoaded", () => {
-    // --- Loading Screen Jet Animation ---
-    const loader = document.getElementById('loader');
-    
-    // We let the CSS animation run (1.8s duration). After it's nearly off-screen, fade out the black background.
-    setTimeout(() => {
-        loader.classList.add('hidden');
-    }, 1000); // 1. seconds in
+document.addEventListener('DOMContentLoaded', () => {
+    const EMAIL = 'rohanburugapalli@gmail.com';
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
 
-    // --- Copy Email Logic ---
-    const copyEmailBtn = document.getElementById('copy-email-btn');
+    // --- Loader ---------------------------------------------------------
+    const loader = document.getElementById('loader');
+    const removeLoader = () => loader.remove();
+    if (reducedMotion.matches) {
+        removeLoader();
+    } else {
+        setTimeout(() => {
+            loader.classList.add('hidden');
+            loader.addEventListener('transitionend', removeLoader, { once: true });
+            setTimeout(removeLoader, 600); // in case transitionend never fires
+        }, 1000);
+    }
+
+    // --- Toast ----------------------------------------------------------
     const toast = document.getElementById('toast');
-    
+    let toastTimer;
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.remove('hidden');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+
+    // --- Copy email (falls back to the mail app) -------------------------
+    const copyEmailBtn = document.getElementById('copy-email-btn');
     copyEmailBtn.addEventListener('click', (e) => {
-        e.preventDefault(); // prevents page from jumping to top
-        navigator.clipboard.writeText('rohanburugapalli@gmail.com').then(() => {
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 3000); // hide the toast after 3 seconds
-        });
+        if (!navigator.clipboard || !navigator.clipboard.writeText) return; // let mailto: work
+        e.preventDefault();
+        navigator.clipboard.writeText(EMAIL)
+            .then(() => showToast('Email copied to clipboard!'))
+            .catch(() => { window.location.href = `mailto:${EMAIL}`; });
     });
 
-    // --- Music Toggle Logic ---
+    // --- Music toggle (hidden when the track is missing) -----------------
     const music = document.getElementById('bg-music');
+    const musicSource = music.querySelector('source');
     const musicToggle = document.getElementById('music-toggle');
     const iconOn = document.getElementById('music-icon-on');
     const iconOff = document.getElementById('music-icon-off');
     let playing = false;
 
+    const hideMusic = () => {
+        music.pause();
+        musicToggle.hidden = true;
+    };
+    musicSource.addEventListener('error', hideMusic);
+    music.addEventListener('error', hideMusic);
+    const checkMusicSource = () => {
+        if (music.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) hideMusic();
+    };
+    checkMusicSource();
+    window.addEventListener('load', checkMusicSource);
+
+    function setPlaying(next) {
+        playing = next;
+        iconOn.hidden = !next;
+        iconOff.hidden = next;
+        const label = next ? 'Pause background music' : 'Play background music';
+        musicToggle.setAttribute('aria-pressed', String(next));
+        musicToggle.setAttribute('aria-label', label);
+        musicToggle.title = label;
+    }
+
     musicToggle.addEventListener('click', () => {
         if (playing) {
             music.pause();
-            iconOn.style.display = 'none';
-            iconOff.style.display = '';
+            setPlaying(false);
         } else {
-            music.play().catch(() => {});
-            iconOn.style.display = '';
-            iconOff.style.display = 'none';
+            setPlaying(true);
+            const attempt = music.play();
+            if (attempt && attempt.catch) attempt.catch(() => { setPlaying(false); hideMusic(); });
         }
-        playing = !playing;
     });
 
-    // --- 3D Folding Logic ---
-    // 1. First, duplicate the actual inner content into the top and bottom folds
-    //    so we only have to write our HTML once.
-    const actualContent = document.getElementById('actual-content').outerHTML;
-    document.getElementById('top-content').innerHTML = actualContent;
-    document.getElementById('bottom-content').innerHTML = actualContent;
+    // --- Starfield ------------------------------------------------------
+    const stars = createStarfield(document.getElementById('stars'), reducedMotion);
 
-    // 2. Select elements we need to animate over scroll
+    // --- 3D folded scroll ----------------------------------------------
+    // Mirror the centre content into the decorative (aria-hidden, inert) folds.
     const centerFold = document.getElementById('center-fold');
-    const foldsContent = document.querySelectorAll('.fold-content'); // grabs top, center, bottom
     const centerContent = document.getElementById('center-content');
-    
-    // We need to store original body height so resetting on resize works perfectly
-    const originalBodyHeight = document.body.style.height;
+    document.getElementById('top-content').innerHTML = centerContent.innerHTML;
+    document.getElementById('bottom-content').innerHTML = centerContent.innerHTML;
 
-    // Calculate how tall the page actually needs to be
+    const foldsContent = document.querySelectorAll('.fold-content');
+    const progressFill = document.querySelector('.progress-fill');
+    let maxScroll = 0;
+
     function updateBodyHeight() {
-        // How much taller is the content inside the box than the box itself?
-        const overflowHeight = centerContent.clientHeight - centerFold.clientHeight;
-        
-        // Make the body height = overflow + 1 viewport height
-        document.body.style.height = `${overflowHeight + window.innerHeight}px`;
+        maxScroll = Math.max(0, centerContent.offsetHeight - centerFold.clientHeight);
+        document.body.style.height = `${maxScroll + window.innerHeight}px`;
+        render();
     }
 
-    // Scroll loop using requestAnimationFrame for 60fps smoothness
-    function tick() {
-        // Find current scroll position
-        const scroll = -(window.scrollY || document.documentElement.scrollTop || 0);
-        
-        // Translate the inner content of all 3 folds simultaneously up
-        // Because of our CSS transforms (transform: translateY(100% / -100%)) 
-        // they visually align completely seamlessly on the seams
-        foldsContent.forEach((content) => {
-            content.style.transform = `translateY(${scroll}px)`;
+    function render() {
+        const y = Math.min(window.scrollY, maxScroll);
+        const t = `translate3d(0, ${-y}px, 0)`;
+        foldsContent.forEach((el) => { el.style.transform = t; });
+        progressFill.style.transform = `scaleY(${maxScroll ? y / maxScroll : 0})`;
+        stars.onScroll(y);
+    }
+
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            ticking = false;
+            render();
         });
-        
-        requestAnimationFrame(tick);
+    }, { passive: true });
+
+    window.addEventListener('resize', updateBodyHeight);
+    window.addEventListener('load', updateBodyHeight);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateBodyHeight);
+    if ('ResizeObserver' in window) new ResizeObserver(updateBodyHeight).observe(centerContent);
+
+    // The fold clips its content with overflow:hidden, and the browser will
+    // still scroll it for focus, find-in-page and screen-reader navigation.
+    // That desyncs the three folds, so turn any fold scroll into page scroll.
+    centerFold.addEventListener('scroll', () => {
+        const dy = centerFold.scrollTop;
+        centerFold.scrollTop = 0;
+        centerFold.scrollLeft = 0;
+        if (dy) window.scrollTo(0, Math.min(maxScroll, window.scrollY + dy));
+    });
+
+    // Keyboard focus: bring the focused element to the middle of the
+    // centre fold, where the text is flat and readable.
+    centerContent.addEventListener('focusin', (e) => {
+        const el = e.target;
+        requestAnimationFrame(() => {
+            centerFold.scrollTop = 0;
+            const offset = el.getBoundingClientRect().top - centerContent.getBoundingClientRect().top;
+            const target = offset - centerFold.clientHeight / 2 + el.offsetHeight / 2;
+            window.scrollTo({
+                top: Math.max(0, Math.min(maxScroll, target)),
+                behavior: reducedMotion.matches ? 'auto' : 'smooth',
+            });
+        });
+    });
+
+    // --- Exhaust trail --------------------------------------------------
+    createTrail(document.getElementById('trail'), finePointer, reducedMotion);
+
+    updateBodyHeight();
+});
+
+function createStarfield(canvas, reducedMotion) {
+    const ctx = canvas.getContext('2d');
+    let w = 0, h = 0, dpr = 1, list = [], scrollY = 0, rafId = 0;
+
+    function build() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        w = window.innerWidth;
+        h = window.innerHeight;
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const count = Math.round((w * h) / 6500);
+        list = Array.from({ length: count }, () => {
+            const big = Math.random() < 0.08;
+            return {
+                x: Math.random() * w,
+                y: Math.random() * h,
+                r: big ? 0.9 + Math.random() * 0.3 : 0.3 + Math.random() * 0.6,
+                color: big ? '#fff6c4' : '#ffffff',
+                depth: 0.05 + Math.random() * 0.25,
+                base: 0.35 + Math.random() * 0.5,
+                speed: 0.0004 + Math.random() * 0.0012,
+                phase: Math.random() * Math.PI * 2,
+            };
+        });
     }
 
-    // Recalculate if user resizes the browser window
-    window.addEventListener('resize', updateBodyHeight);
-    
-    // Initialize everything
-    updateBodyHeight();
-    requestAnimationFrame(tick);
-});
+    function draw(time) {
+        ctx.clearRect(0, 0, w, h);
+        const animate = !reducedMotion.matches;
+        for (const s of list) {
+            let y = (s.y - scrollY * s.depth) % h;
+            if (y < 0) y += h;
+            const twinkle = animate ? 0.3 * Math.sin(time * s.speed + s.phase) : 0;
+            ctx.globalAlpha = Math.max(0.1, Math.min(1, s.base + twinkle));
+            ctx.fillStyle = s.color;
+            ctx.beginPath();
+            ctx.arc(s.x, y, s.r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    function loop(time) {
+        draw(time);
+        rafId = requestAnimationFrame(loop);
+    }
+
+    function start() {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+        if (reducedMotion.matches || document.hidden) {
+            draw(0);
+        } else {
+            rafId = requestAnimationFrame(loop);
+        }
+    }
+
+    build();
+    start();
+    window.addEventListener('resize', () => { build(); if (!rafId) draw(0); });
+    document.addEventListener('visibilitychange', start);
+    if (reducedMotion.addEventListener) reducedMotion.addEventListener('change', start);
+
+    return {
+        onScroll(y) {
+            scrollY = y;
+            if (!rafId) draw(0); // static mode only redraws on scroll
+        },
+    };
+}
+
+function createTrail(canvas, finePointer, reducedMotion) {
+    const ctx = canvas.getContext('2d');
+    const MAX = 160;
+    const LIFE = 30;
+    let particles = [];
+    let rafId = 0;
+    let dpr = 1, w = 0, h = 0;
+
+    const enabled = () => finePointer.matches && !reducedMotion.matches;
+
+    function resize() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        w = window.innerWidth;
+        h = window.innerHeight;
+        canvas.width = Math.round(w * dpr);
+        canvas.height = Math.round(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function step() {
+        ctx.clearRect(0, 0, w, h);
+        particles = particles.filter((p) => ++p.age < LIFE);
+        for (const p of particles) {
+            const t = p.age / LIFE;
+            p.x += p.vx;
+            p.y += p.vy;
+            // yellow-white (255,246,196) → orange (255,122,26)
+            const g = Math.round(246 - 124 * t);
+            const b = Math.round(196 - 170 * t);
+            ctx.globalAlpha = 1 - t;
+            ctx.fillStyle = `rgb(255,${g},${b})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, Math.max(0.2, p.r * (1 - t)), 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        rafId = particles.length ? requestAnimationFrame(step) : 0;
+    }
+
+    window.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'mouse' || !enabled()) return;
+        const n = 1 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < n; i++) {
+            particles.push({
+                x: e.clientX + 18 + (Math.random() - 0.5) * 3,
+                y: e.clientY + 18 + (Math.random() - 0.5) * 3,
+                vx: 0.3 + Math.random() * 0.6,
+                vy: 0.3 + Math.random() * 0.6,
+                r: 1 + Math.random() * 1.6,
+                age: 0,
+            });
+        }
+        if (particles.length > MAX) particles.splice(0, particles.length - MAX);
+        if (!rafId) rafId = requestAnimationFrame(step);
+    }, { passive: true });
+
+    window.addEventListener('resize', resize);
+    resize();
+}
