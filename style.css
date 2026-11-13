@@ -11,8 +11,8 @@
     --dur-hover: 180ms;
     --dur-press: 120ms;
 
-    --cursor-rocket: url('assets/cursor-rocket.svg') 5 5, url('assets/cursor-rocket.png') 5 5, auto;
-    --cursor-boost:  url('assets/cursor-rocket-boost.svg') 5 5, url('assets/cursor-rocket-boost.png') 5 5, pointer;
+    --cursor-rocket: url('assets/cursor-rocket.svg') 6 6, url('assets/cursor-rocket.png') 6 6, auto;
+    --cursor-boost:  url('assets/cursor-rocket-boost.svg') 6 6, url('assets/cursor-rocket-boost.png') 6 6, pointer;
 }
 
 * {
